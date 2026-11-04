@@ -206,7 +206,7 @@
     }
 
     function paymentAllocation(payment) {
-      if (!payment.appliedFrom) return 'Cuotas por identificar';
+      if (!payment.appliedFrom) return 'Cuota por confirmar';
       const first = formatShortMonth(new Date(payment.appliedFrom + '-01'));
       return payment.appliedThrough
         ? first + ' a ' + formatShortMonth(new Date(payment.appliedThrough + '-01'))
@@ -257,7 +257,7 @@
 
       byId('payments-table').hidden = payments.length === 0;
       byId('payments-help').textContent = payments.length
-        ? 'El monto corresponde al abono completo. Los abonos hasta el ' + longDate(new Date(ledger.baseline.date)) + ' ya están incluidos en el corte base.'
+        ? 'El historial muestra el monto completo de cada abono e incluye pagos de cuotas anteriores al período consultado. «Cuota por confirmar» indica que falta identificar el mes que cubrió el abono.'
         : 'El historial disponible no contiene abonos con fecha individualizada para esta casa.';
       byId('payments').replaceChildren(...payments.map((payment, index) => {
         const paymentRow = row([
