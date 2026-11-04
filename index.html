@@ -159,7 +159,7 @@
           { date: '2026-09-01', amount: 20000, method: 'Transferencia', appliedFrom: '2026-08' },
           { date: '2026-10-16', amount: 20000, method: 'Transferencia', appliedFrom: '2026-09' }
         ] },
-        D: { administration: true, compensatedFrom: '2026-08' },
+        D: { administration: true },
         E: { baselinePending: ['2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'], payments: [
           { date: '2026-10-16', amount: 220000, method: 'Depósito en efectivo', appliedFrom: '2025-12', appliedThrough: '2026-10' }
         ] },
@@ -237,17 +237,15 @@
       const paymentRowId = index => 'abono-' + id + '-' + (index + 1);
       byId('house').textContent = 'Casa ' + id;
       byId('balance').textContent = formatMoney(pending.length * ledger.fee);
-      byId('status').textContent = home.administration
-        ? 'Al día · Cuotas cubiertas por la labor de administración.'
-        : pending.length ? pending.length + (pending.length === 1 ? ' cuota pendiente' : ' cuotas pendientes') : 'Al día al cierre del período.';
+      byId('status').textContent = pending.length
+        ? pending.length + (pending.length === 1 ? ' cuota pendiente' : ' cuotas pendientes')
+        : 'Al día al cierre del período.';
       byId('detail-period').textContent = 'Cuotas hasta ' + displayMonth(ledger.cutoff).toLocaleLowerCase('es-CL');
       byId('months').replaceChildren(...period.map(month => {
         const isPending = pending.includes(month);
-        const isCompensated = home.administration && month >= home.compensatedFrom;
-        const state = isCompensated ? 'Compensada' : isPending ? 'Pendiente' : 'Pagada';
+        const state = isPending ? 'Pendiente' : 'Pagada';
         const cells = [[displayMonth(month)], [state, isPending ? 'pending' : 'paid']];
-        if (isPending) return row([...cells, ['—']]);
-        if (isCompensated) return row([...cells, ['Compensación por administración']]);
+        if (isPending || home.administration) return row([...cells, ['—']]);
 
         const index = payments.findIndex(payment => paymentCoversMonth(payment, month));
         if (index < 0) return row([...cells, ['Abono sin identificar']]);
@@ -258,10 +256,9 @@
       }));
 
       byId('payments-table').hidden = payments.length === 0;
-      byId('payments-help').textContent = home.administration
-        ? 'Las cuotas se compensan por administración desde ' + displayMonth(home.compensatedFrom).toLocaleLowerCase('es-CL') + '.'
-        : payments.length ? 'El monto corresponde al abono completo. Los abonos hasta el ' + longDate(new Date(ledger.baseline.date)) + ' ya están incluidos en el corte base.'
-          : 'El historial disponible no contiene abonos con fecha individualizada para esta casa.';
+      byId('payments-help').textContent = payments.length
+        ? 'El monto corresponde al abono completo. Los abonos hasta el ' + longDate(new Date(ledger.baseline.date)) + ' ya están incluidos en el corte base.'
+        : 'El historial disponible no contiene abonos con fecha individualizada para esta casa.';
       byId('payments').replaceChildren(...payments.map((payment, index) => {
         const paymentRow = row([
           [shortDate(new Date(payment.date))], [formatMoney(payment.amount), 'amount'], [payment.method ?? 'Sin registro'], [paymentAllocation(payment)]
