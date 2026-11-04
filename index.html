@@ -48,6 +48,7 @@
     .amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .pending { color: #8a411c; font-weight: 690; }
     .paid { color: #245f44; }
+    tr:target { background: var(--mint); }
     .empty { margin-top: .65rem; }
     footer { padding: 0 0 1.7rem; color: var(--muted); font-size: .91rem; }
     @media (max-width: 42rem) { .tables { grid-template-columns: 1fr; } }
@@ -104,7 +105,7 @@
           <section aria-labelledby="months-title">
             <h3 id="months-title">Detalle de cuotas</h3>
             <table aria-labelledby="months-title">
-              <thead><tr><th scope="col">Mes</th><th scope="col">Estado</th></tr></thead>
+              <thead><tr><th scope="col">Mes</th><th scope="col">Estado</th><th scope="col">Abono asociado</th></tr></thead>
               <tbody id="months"></tbody>
             </table>
           </section>
@@ -134,22 +135,22 @@
       fee: 20000,
       homes: {
         A: { baselinePending: ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'], payments: [
-          { date: '2026-03-26', amount: 40000, method: 'Transferencia' },
-          { date: '2026-04-16', amount: 20000, method: 'Transferencia' },
-          { date: '2026-07-14', amount: 60000, method: 'Transferencia' }
+          { date: '2026-03-26', amount: 40000, method: 'Transferencia', appliedFrom: '2025-08', appliedThrough: '2025-09' },
+          { date: '2026-04-16', amount: 20000, method: 'Transferencia', appliedFrom: '2025-10' },
+          { date: '2026-07-14', amount: 60000, method: 'Transferencia', appliedFrom: '2025-11', appliedThrough: '2026-01' }
         ] },
         B: { baselinePending: ['2026-07'], payments: [
-          { date: '2026-04-14', amount: 40000, method: 'Transferencia' },
-          { date: '2026-05-13', amount: 20000, method: 'Transferencia' },
-          { date: '2026-06-02', amount: 20000, method: 'Transferencia' },
-          { date: '2026-07-07', amount: 20000, method: 'Transferencia' },
+          { date: '2026-04-14', amount: 40000, method: 'Transferencia', appliedFrom: '2026-02', appliedThrough: '2026-03' },
+          { date: '2026-05-13', amount: 20000, method: 'Transferencia', appliedFrom: '2026-04' },
+          { date: '2026-06-02', amount: 20000, method: 'Transferencia', appliedFrom: '2026-05' },
+          { date: '2026-07-07', amount: 20000, method: 'Transferencia', appliedFrom: '2026-06' },
           { date: '2026-10-16', amount: 40000, method: 'Transferencia', appliedFrom: '2026-07', appliedThrough: '2026-08' }
         ] },
         C: { baselinePending: ['2026-06', '2026-07'], payments: [
           { date: '2026-03-12', amount: 40000, method: 'Transferencia' },
-          { date: '2026-04-14', amount: 20000, method: 'Transferencia' },
-          { date: '2026-06-02', amount: 20000, method: 'Transferencia' },
-          { date: '2026-08-05', amount: 20000, method: 'Transferencia' },
+          { date: '2026-04-14', amount: 20000, method: 'Transferencia', appliedFrom: '2026-03' },
+          { date: '2026-06-02', amount: 20000, method: 'Transferencia', appliedFrom: '2026-04' },
+          { date: '2026-08-05', amount: 20000, method: 'Transferencia', appliedFrom: '2026-05' },
           { date: '2026-08-11', amount: 40000, method: 'Transferencia', appliedFrom: '2026-06', appliedThrough: '2026-07' },
           { date: '2026-10-16', amount: 20000, method: 'Transferencia', appliedFrom: '2026-08' }
         ] },
@@ -158,13 +159,13 @@
           { date: '2026-10-16', amount: 220000, method: 'Depósito en efectivo', appliedFrom: '2025-12', appliedThrough: '2026-10' }
         ] },
         F: { baselinePending: ['2026-06', '2026-07'], payments: [
-          { date: '2026-04-17', amount: 40000, method: 'Transferencia' },
-          { date: '2026-06-04', amount: 40000, method: 'Transferencia' },
+          { date: '2026-04-17', amount: 40000, method: 'Transferencia', appliedFrom: '2026-02', appliedThrough: '2026-03' },
+          { date: '2026-06-04', amount: 40000, method: 'Transferencia', appliedFrom: '2026-04', appliedThrough: '2026-05' },
           { date: '2026-10-05', amount: 40000, method: 'Transferencia', appliedFrom: '2026-06', appliedThrough: '2026-07' }
         ] },
         G: { baselinePending: ['2026-06', '2026-07'], payments: [
-          { date: '2026-04-15', amount: 120000, method: 'Depósito en efectivo' },
-          { date: '2026-07-31', amount: 40000, method: 'Depósito en efectivo' }
+          { date: '2026-04-15', amount: 120000, method: 'Depósito en efectivo', appliedFrom: '2025-10', appliedThrough: '2026-03' },
+          { date: '2026-07-31', amount: 40000, method: 'Depósito en efectivo', appliedFrom: '2026-04', appliedThrough: '2026-05' }
         ] }
       }
     };
@@ -182,21 +183,24 @@
       period.push(date.toISOString().slice(0, 7));
     }
 
+    function paymentCoversMonth(payment, month) {
+      return Boolean(payment.appliedFrom) &&
+        month >= payment.appliedFrom && month <= (payment.appliedThrough ?? payment.appliedFrom);
+    }
+
     function pendingMonths(home) {
       if (home.administration) return [];
       const appliedPayments = (home.payments ?? []).filter(payment =>
-        payment.appliedFrom && payment.date > ledger.baseline.date && payment.date <= ledger.updated
+        payment.date > ledger.baseline.date && payment.date <= ledger.updated
       );
       return period.filter(month =>
         (month > ledger.baseline.cutoff || home.baselinePending.includes(month)) &&
-        !appliedPayments.some(payment =>
-          month >= payment.appliedFrom && month <= (payment.appliedThrough ?? payment.appliedFrom)
-        )
+        !appliedPayments.some(payment => paymentCoversMonth(payment, month))
       );
     }
 
     function paymentAllocation(payment) {
-      if (!payment.appliedFrom) return 'En la base';
+      if (!payment.appliedFrom) return 'En la base · cuotas sin identificar';
       const first = formatShortMonth(new Date(payment.appliedFrom + '-01'));
       return payment.appliedThrough
         ? first + ' a ' + formatShortMonth(new Date(payment.appliedThrough + '-01'))
@@ -205,9 +209,16 @@
 
     function row(values) {
       const tr = document.createElement('tr');
-      for (const [value, className] of values) {
+      for (const [value, className, href] of values) {
         const td = tr.insertCell();
-        td.textContent = value;
+        if (href) {
+          const link = document.createElement('a');
+          link.href = href;
+          link.textContent = value;
+          td.append(link);
+        } else {
+          td.textContent = value;
+        }
         if (className) td.className = className;
       }
       return tr;
@@ -216,6 +227,8 @@
     function showHouse(id) {
       const home = ledger.homes[id];
       const pending = pendingMonths(home);
+      const payments = (home.payments ?? []).filter(payment => payment.date <= ledger.updated);
+      const paymentRowId = index => 'abono-' + id + '-' + (index + 1);
       byId('house').textContent = 'Casa ' + id;
       byId('balance').textContent = formatMoney(pending.length * ledger.fee);
       byId('status').textContent = home.administration
@@ -224,19 +237,32 @@
       byId('detail-period').textContent = 'Cuotas hasta ' + displayMonth(ledger.cutoff).toLocaleLowerCase('es-CL');
       byId('months').replaceChildren(...period.map(month => {
         const isPending = pending.includes(month);
-        const state = home.administration && month >= home.compensatedFrom ? 'Compensada' : isPending ? 'Pendiente' : 'Pagada';
-        return row([[displayMonth(month)], [state, isPending ? 'pending' : 'paid']]);
+        const isCompensated = home.administration && month >= home.compensatedFrom;
+        const state = isCompensated ? 'Compensada' : isPending ? 'Pendiente' : 'Pagada';
+        const cells = [[displayMonth(month)], [state, isPending ? 'pending' : 'paid']];
+        if (isPending) return row([...cells, ['—']]);
+        if (isCompensated) return row([...cells, ['Compensación por administración']]);
+
+        const index = payments.findIndex(payment => paymentCoversMonth(payment, month));
+        if (index < 0) return row([...cells, ['Corte base · abono sin identificar']]);
+
+        const payment = payments[index];
+        const reference = payment.method + ' del ' + shortDate(new Date(payment.date)) + ' · ' + formatMoney(payment.amount);
+        return row([...cells, [reference, null, '#' + paymentRowId(index)]]);
       }));
 
-      const payments = home.payments ?? [];
       byId('payments-table').hidden = payments.length === 0;
       byId('payments-help').textContent = home.administration
         ? 'Las cuotas se compensan por administración desde ' + displayMonth(home.compensatedFrom).toLocaleLowerCase('es-CL') + '.'
-        : payments.length ? 'Los movimientos marcados «En la base» ya estaban incluidos al ' + longDate(new Date(ledger.baseline.date)) + '.'
+        : payments.length ? 'El monto corresponde al abono completo. Los abonos hasta el ' + longDate(new Date(ledger.baseline.date)) + ' ya están incluidos en el corte base.'
           : 'El historial disponible no contiene abonos con fecha individualizada para esta casa.';
-      byId('payments').replaceChildren(...payments.map(payment => row([
-        [shortDate(new Date(payment.date))], [formatMoney(payment.amount), 'amount'], [payment.method ?? 'Sin registro'], [paymentAllocation(payment)]
-      ])));
+      byId('payments').replaceChildren(...payments.map((payment, index) => {
+        const paymentRow = row([
+          [shortDate(new Date(payment.date))], [formatMoney(payment.amount), 'amount'], [payment.method ?? 'Sin registro'], [paymentAllocation(payment)]
+        ]);
+        paymentRow.id = paymentRowId(index);
+        return paymentRow;
+      }));
       byId('detail').hidden = false;
     }
 
