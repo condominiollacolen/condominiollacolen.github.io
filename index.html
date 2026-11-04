@@ -135,11 +135,14 @@
       fee: 20000,
       homes: {
         A: { baselinePending: ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'], payments: [
+          { date: '2026-01-07', amount: 20000, method: 'Transferencia' },
           { date: '2026-03-26', amount: 40000, method: 'Transferencia', appliedFrom: '2025-08', appliedThrough: '2025-09' },
           { date: '2026-04-16', amount: 20000, method: 'Transferencia', appliedFrom: '2025-10' },
           { date: '2026-07-14', amount: 60000, method: 'Transferencia', appliedFrom: '2025-11', appliedThrough: '2026-01' }
         ] },
         B: { baselinePending: ['2026-07'], payments: [
+          { date: '2026-01-07', amount: 20000, method: 'Transferencia', appliedFrom: '2025-12' },
+          { date: '2026-02-13', amount: 20000, method: 'Transferencia', appliedFrom: '2026-01' },
           { date: '2026-04-14', amount: 40000, method: 'Transferencia', appliedFrom: '2026-02', appliedThrough: '2026-03' },
           { date: '2026-05-13', amount: 20000, method: 'Transferencia', appliedFrom: '2026-04' },
           { date: '2026-06-02', amount: 20000, method: 'Transferencia', appliedFrom: '2026-05' },
@@ -147,18 +150,21 @@
           { date: '2026-10-16', amount: 40000, method: 'Transferencia', appliedFrom: '2026-07', appliedThrough: '2026-08' }
         ] },
         C: { baselinePending: ['2026-06', '2026-07'], payments: [
-          { date: '2026-03-12', amount: 40000, method: 'Transferencia' },
+          { date: '2026-01-07', amount: 20000, method: 'Transferencia', appliedFrom: '2025-12' },
+          { date: '2026-03-12', amount: 40000, method: 'Transferencia', appliedFrom: '2026-01', appliedThrough: '2026-02' },
           { date: '2026-04-14', amount: 20000, method: 'Transferencia', appliedFrom: '2026-03' },
           { date: '2026-06-02', amount: 20000, method: 'Transferencia', appliedFrom: '2026-04' },
           { date: '2026-08-05', amount: 20000, method: 'Transferencia', appliedFrom: '2026-05' },
           { date: '2026-08-11', amount: 40000, method: 'Transferencia', appliedFrom: '2026-06', appliedThrough: '2026-07' },
-          { date: '2026-10-16', amount: 20000, method: 'Transferencia', appliedFrom: '2026-08' }
+          { date: '2026-09-01', amount: 20000, method: 'Transferencia', appliedFrom: '2026-08' },
+          { date: '2026-10-16', amount: 20000, method: 'Transferencia', appliedFrom: '2026-09' }
         ] },
         D: { administration: true, compensatedFrom: '2026-08' },
         E: { baselinePending: ['2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'], payments: [
           { date: '2026-10-16', amount: 220000, method: 'Depósito en efectivo', appliedFrom: '2025-12', appliedThrough: '2026-10' }
         ] },
         F: { baselinePending: ['2026-06', '2026-07'], payments: [
+          { date: '2026-02-04', amount: 40000, method: 'Transferencia', appliedFrom: '2025-12', appliedThrough: '2026-01' },
           { date: '2026-04-17', amount: 40000, method: 'Transferencia', appliedFrom: '2026-02', appliedThrough: '2026-03' },
           { date: '2026-06-04', amount: 40000, method: 'Transferencia', appliedFrom: '2026-04', appliedThrough: '2026-05' },
           { date: '2026-10-05', amount: 40000, method: 'Transferencia', appliedFrom: '2026-06', appliedThrough: '2026-07' }
@@ -200,7 +206,7 @@
     }
 
     function paymentAllocation(payment) {
-      if (!payment.appliedFrom) return 'En la base · cuotas sin identificar';
+      if (!payment.appliedFrom) return 'Cuotas por identificar';
       const first = formatShortMonth(new Date(payment.appliedFrom + '-01'));
       return payment.appliedThrough
         ? first + ' a ' + formatShortMonth(new Date(payment.appliedThrough + '-01'))
@@ -244,7 +250,7 @@
         if (isCompensated) return row([...cells, ['Compensación por administración']]);
 
         const index = payments.findIndex(payment => paymentCoversMonth(payment, month));
-        if (index < 0) return row([...cells, ['Corte base · abono sin identificar']]);
+        if (index < 0) return row([...cells, ['Abono sin identificar']]);
 
         const payment = payments[index];
         const reference = payment.method + ' del ' + shortDate(new Date(payment.date)) + ' · ' + formatMoney(payment.amount);
