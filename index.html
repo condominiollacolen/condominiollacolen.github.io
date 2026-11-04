@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, noarchive">
+  <meta name="theme-color" content="#163d33">
+  <title>Gastos comunes | Condominio Llacolén</title>
+  <style>
+    :root { color-scheme: light; --ink: #173128; --muted: #4c6258; --green: #163d33; --mint: #d6ebdd; --line: #dbe5dd; --paper: #fff; --canvas: #f4f7f2; font: 16px/1.55 system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--canvas); }
+    h1, h2, h3, p { margin: 0; }
+    h1 { margin-block: .3rem .5rem; font-size: clamp(2.35rem, 7vw, 4.2rem); line-height: 1.02; letter-spacing: -.045em; }
+    h2 { font-size: 1.45rem; line-height: 1.25; }
+    h3 { font-size: 1.04rem; }
+    a { color: #205d49; }
+    :focus-visible { outline: 3px solid #237b61; outline-offset: 4px; }
+    .wrap { width: min(100% - 2rem, 66rem); margin-inline: auto; }
+    .hero { background: var(--green); color: white; padding-block: 2.3rem 2.55rem; }
+    .eyebrow { font-size: .76rem; font-weight: 720; letter-spacing: .12em; text-transform: uppercase; }
+    .hero .eyebrow, .hero .sub { color: #dcece2; }
+    .stamp { display: inline-flex; flex-wrap: wrap; gap: .2rem .6rem; margin-top: 1.35rem; padding: .48rem .75rem; border-radius: .45rem; background: var(--mint); color: var(--green); font-size: .86rem; }
+    main { padding-block: 1.35rem 2rem; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: 1.3rem; }
+    .metric, .panel { background: var(--paper); border: 1px solid var(--line); border-radius: .95rem; }
+    .metric { padding: .95rem 1rem; }
+    .metric span { display: block; color: var(--muted); font-size: .83rem; }
+    .metric strong { display: block; margin-top: .15rem; font-size: clamp(1.25rem, 4vw, 1.75rem); line-height: 1.2; }
+    .panel { padding: clamp(1rem, 3vw, 1.55rem); }
+    .help, .empty { color: var(--muted); font-size: .93rem; }
+    .house-picker { display: flex; flex-wrap: wrap; gap: .55rem; margin-block: .8rem 1.2rem; padding: 0; border: 0; }
+    .house-picker legend { padding: 0; margin-bottom: .55rem; }
+    .house-picker input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .house-picker label { min-width: 4.4rem; text-align: center; cursor: pointer; padding: .45rem .6rem; border: 1px solid #9fb6a8; border-radius: .48rem; font-size: .9rem; font-weight: 650; }
+    .house-picker input:checked + label { background: var(--green); color: white; border-color: var(--green); }
+    .house-picker input:focus-visible + label { outline: 3px solid #237b61; outline-offset: 3px; }
+    .summary { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: .95rem; background: #edf4ee; border-radius: .6rem; }
+    .summary .eyebrow { color: var(--muted); }
+    .balance { font-size: 1.65rem; font-weight: 740; }
+    button { border: 1px solid var(--green); border-radius: .5rem; background: var(--paper); color: var(--green); padding: .5rem .75rem; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
+    button:hover { background: var(--mint); }
+    .tables { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 1.45rem; margin-top: 1.25rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: .5rem; font-size: .89rem; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: .32rem .35rem; }
+    th { color: var(--muted); font-weight: 660; }
+    .amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .pending { color: #8a411c; font-weight: 690; }
+    .paid { color: #245f44; }
+    .empty { margin-top: .65rem; }
+    footer { padding: 0 0 1.7rem; color: var(--muted); font-size: .91rem; }
+    @media (max-width: 42rem) { .tables { grid-template-columns: 1fr; } }
+    @media (max-width: 30rem) { .metrics { grid-template-columns: 1fr; gap: .45rem; } .metric { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; padding: .55rem .7rem; } .hero { padding-block: 1.6rem; } }
+    @media print {
+      body { background: white; }
+      .wrap { width: 100%; }
+      .hero { background: white; padding: 0 0 .75rem; }
+      .hero, .hero .eyebrow, .hero .sub { color: var(--ink); }
+      h1 { font-size: 2rem; }
+      .stamp { margin-top: .4rem; padding: 0; }
+      .metrics, .house-picker, .panel > h2, #print { display: none; }
+      .panel { padding: 0; border: 0; }
+      .summary { padding: .35rem 0; }
+      .tables { grid-template-columns: 1fr 1fr; }
+      tr { break-inside: avoid; }
+      footer { margin-top: .6rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Condominio Llacolén</p>
+      <h1>Gastos comunes</h1>
+      <p class="sub">Consulta el saldo y el detalle de cuotas de tu casa.</p>
+      <p class="stamp"><strong>Última actualización</strong> <time id="updated"></time></p>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="metrics" aria-label="Resumen del condominio">
+      <div class="metric"><span>Cuotas incluidas hasta</span><strong id="cutoff"></strong></div>
+      <div class="metric"><span>Cuota mensual</span><strong id="fee"></strong></div>
+      <div class="metric"><span>Saldo total pendiente</span><strong id="total"></strong></div>
+    </div>
+    <section class="panel" aria-labelledby="consult-title">
+      <h2 id="consult-title">Consulta por casa</h2>
+      <noscript><p>Activa JavaScript para consultar el detalle por casa.</p></noscript>
+      <fieldset id="picker" class="house-picker">
+        <legend class="help">Selecciona tu casa</legend>
+      </fieldset>
+      <div id="detail" hidden>
+        <div class="summary">
+          <div aria-live="polite">
+            <p id="house" class="eyebrow"></p>
+            <p id="balance" class="balance"></p>
+            <p id="status" class="help"></p>
+            <p id="detail-period" class="help"></p>
+          </div>
+          <button id="print" type="button">Imprimir / guardar PDF</button>
+        </div>
+        <div class="tables">
+          <section aria-labelledby="months-title">
+            <h3 id="months-title">Detalle de cuotas</h3>
+            <table aria-labelledby="months-title">
+              <thead><tr><th scope="col">Mes</th><th scope="col">Estado</th></tr></thead>
+              <tbody id="months"></tbody>
+            </table>
+          </section>
+          <section aria-labelledby="payments-title">
+            <h3 id="payments-title">Abonos con fecha registrada</h3>
+            <p id="payments-help" class="empty"></p>
+            <table id="payments-table" aria-labelledby="payments-title" aria-describedby="payments-help" hidden>
+              <thead><tr><th scope="col">Fecha</th><th scope="col" class="amount">Monto</th><th scope="col">Medio</th></tr></thead>
+              <tbody id="payments"></tbody>
+            </table>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap">Consultas a la administración · <a href="mailto:administracion.llacolen@gmail.com">administracion.llacolen@gmail.com</a></footer>
+  <script>
+    'use strict';
+
+    const ledger = {
+      updated: '2026-11-04',
+      firstMonth: '2025-12',
+      cutoff: '2026-10',
+      fee: 20000,
+      homes: {
+        A: { pending: ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10'] },
+        B: { pending: ['2026-09', '2026-10'], payments: [{ date: '2026-10-16', amount: 40000 }] },
+        C: { pending: ['2026-09', '2026-10'], payments: [
+          { date: '2026-08-05', amount: 20000 },
+          { date: '2026-08-11', amount: 40000 },
+          { date: '2026-10-16', amount: 20000 }
+        ] },
+        D: { administration: true, compensatedFrom: '2026-08' },
+        E: { pending: [], payments: [{ date: '2026-10-16', amount: 220000, method: 'Depósito en efectivo' }] },
+        F: { pending: ['2026-08', '2026-09', '2026-10'], payments: [{ date: '2026-10-05', amount: 40000 }] },
+        G: { pending: ['2026-06', '2026-07', '2026-08', '2026-09', '2026-10'] }
+      }
+    };
+
+    const byId = id => document.getElementById(id);
+    const formatMoney = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format;
+    const longDate = new Intl.DateTimeFormat('es-CL', { dateStyle: 'long', timeZone: 'UTC' }).format;
+    const shortDate = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format;
+    const formatMonth = new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format;
+    const displayMonth = month => formatMonth(new Date(month + '-01')).replace(/^./u, char => char.toUpperCase());
+    const houses = Object.keys(ledger.homes);
+    const period = [];
+    for (const date = new Date(ledger.firstMonth + '-01'); date.toISOString().slice(0, 7) <= ledger.cutoff; date.setUTCMonth(date.getUTCMonth() + 1)) {
+      period.push(date.toISOString().slice(0, 7));
+    }
+
+    function pendingMonths(home) {
+      return home.administration ? [] : home.pending.filter(month => period.includes(month));
+    }
+
+    function row(values) {
+      const tr = document.createElement('tr');
+      for (const [value, className] of values) {
+        const td = tr.insertCell();
+        td.textContent = value;
+        if (className) td.className = className;
+      }
+      return tr;
+    }
+
+    function showHouse(id) {
+      const home = ledger.homes[id];
+      const pending = pendingMonths(home);
+      byId('house').textContent = 'Casa ' + id;
+      byId('balance').textContent = formatMoney(pending.length * ledger.fee);
+      byId('status').textContent = home.administration
+        ? 'Al día · Cuotas cubiertas por la labor de administración.'
+        : pending.length ? pending.length + (pending.length === 1 ? ' cuota pendiente' : ' cuotas pendientes') : 'Al día al cierre del período.';
+      byId('detail-period').textContent = 'Cuotas hasta ' + displayMonth(ledger.cutoff).toLocaleLowerCase('es-CL');
+      byId('months').replaceChildren(...period.map(month => {
+        const isPending = pending.includes(month);
+        const state = home.administration && month >= home.compensatedFrom ? 'Compensada' : isPending ? 'Pendiente' : 'Pagada';
+        return row([[displayMonth(month)], [state, isPending ? 'pending' : 'paid']]);
+      }));
+
+      const payments = home.payments ?? [];
+      byId('payments-table').hidden = payments.length === 0;
+      byId('payments-help').textContent = home.administration
+        ? 'Las cuotas se compensan por administración desde ' + displayMonth(home.compensatedFrom).toLocaleLowerCase('es-CL') + '.'
+        : payments.length ? 'Historial parcial. Incluye los abonos cuya fecha se pudo recuperar.'
+          : 'El historial disponible no contiene abonos con fecha individualizada para esta casa.';
+      byId('payments').replaceChildren(...payments.map(payment => row([
+        [shortDate(new Date(payment.date))], [formatMoney(payment.amount), 'amount'], [payment.method ?? 'Sin registro']
+      ])));
+      byId('detail').hidden = false;
+    }
+
+    byId('updated').dateTime = ledger.updated;
+    byId('updated').textContent = longDate(new Date(ledger.updated));
+    byId('cutoff').textContent = displayMonth(ledger.cutoff);
+    byId('fee').textContent = formatMoney(ledger.fee);
+    byId('total').textContent = formatMoney(Object.values(ledger.homes).reduce((sum, home) => sum + pendingMonths(home).length * ledger.fee, 0));
+
+    for (const id of houses) {
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'house';
+      radio.id = 'house-' + id;
+      radio.value = id;
+      radio.addEventListener('change', () => showHouse(id));
+      const label = document.createElement('label');
+      label.htmlFor = radio.id;
+      label.textContent = 'Casa ' + id;
+      byId('picker').append(radio, label);
+    }
+    byId('print').addEventListener('click', () => window.print());
+  </script>
+</body>
+</html>
