@@ -98,6 +98,7 @@
             <p id="balance" class="balance"></p>
             <p id="status" class="help"></p>
             <p id="detail-period" class="help"></p>
+            <p id="balance-detail" class="help" hidden></p>
           </div>
           <button id="print" type="button">Imprimir / guardar PDF</button>
         </div>
@@ -114,7 +115,7 @@
             <p id="payments-help" class="empty"></p>
             <div class="payments-scroll">
               <table id="payments-table" aria-labelledby="payments-title" aria-describedby="payments-help" hidden>
-                <thead><tr><th scope="col">Fecha</th><th scope="col" class="amount">Monto</th><th scope="col">Medio</th><th scope="col">Cuotas imputadas</th></tr></thead>
+                <thead><tr><th scope="col">Fecha del abono</th><th scope="col" class="amount">Monto</th><th scope="col">Medio</th><th scope="col">Cuotas que cubrió</th></tr></thead>
                 <tbody id="payments"></tbody>
               </table>
             </div>
@@ -194,13 +195,16 @@
         month >= payment.appliedFrom && month <= (payment.appliedThrough ?? payment.appliedFrom);
     }
 
-    function pendingMonths(home) {
+    function assessedMonths(home) {
       if (home.administration) return [];
+      return period.filter(month => month > ledger.baseline.cutoff || home.baselinePending.includes(month));
+    }
+
+    function pendingMonths(home, assessed = assessedMonths(home)) {
       const appliedPayments = (home.payments ?? []).filter(payment =>
         payment.date > ledger.baseline.date && payment.date <= ledger.updated
       );
-      return period.filter(month =>
-        (month > ledger.baseline.cutoff || home.baselinePending.includes(month)) &&
+      return assessed.filter(month =>
         !appliedPayments.some(payment => paymentCoversMonth(payment, month))
       );
     }
@@ -232,7 +236,8 @@
 
     function showHouse(id) {
       const home = ledger.homes[id];
-      const pending = pendingMonths(home);
+      const assessed = assessedMonths(home);
+      const pending = pendingMonths(home, assessed);
       const payments = (home.payments ?? []).filter(payment => payment.date <= ledger.updated);
       const paymentRowId = index => 'abono-' + id + '-' + (index + 1);
       byId('house').textContent = 'Casa ' + id;
@@ -240,7 +245,15 @@
       byId('status').textContent = pending.length
         ? pending.length + (pending.length === 1 ? ' cuota pendiente' : ' cuotas pendientes')
         : 'Al día al cierre del período.';
-      byId('detail-period').textContent = 'Cuotas hasta ' + displayMonth(ledger.cutoff).toLocaleLowerCase('es-CL');
+      byId('detail-period').textContent = 'Cuotas de ' + formatMonth(new Date(ledger.firstMonth + '-01')) +
+        ' a ' + formatMonth(new Date(ledger.cutoff + '-01')) + '.';
+      const openingCount = assessed.filter(month => month <= ledger.baseline.cutoff).length;
+      const balanceDetail = byId('balance-detail');
+      balanceDetail.hidden = Boolean(home.administration);
+      balanceDetail.textContent = home.administration ? '' :
+        'Saldo al ' + shortDate(new Date(ledger.baseline.date)) + ' ' + formatMoney(openingCount * ledger.fee) +
+        ' + cuotas posteriores ' + formatMoney((assessed.length - openingCount) * ledger.fee) +
+        ' − abonos aplicados ' + formatMoney((assessed.length - pending.length) * ledger.fee) + '.';
       byId('months').replaceChildren(...period.map(month => {
         const isPending = pending.includes(month);
         const state = isPending ? 'Pendiente' : 'Pagada';
@@ -251,13 +264,13 @@
         if (index < 0) return row([...cells, ['Abono sin identificar']]);
 
         const payment = payments[index];
-        const reference = payment.method + ' del ' + shortDate(new Date(payment.date)) + ' · ' + formatMoney(payment.amount);
+        const reference = payment.method + ' del ' + shortDate(new Date(payment.date)) + ' · abono de ' + formatMoney(payment.amount);
         return row([...cells, [reference, null, '#' + paymentRowId(index)]]);
       }));
 
       byId('payments-table').hidden = payments.length === 0;
       byId('payments-help').textContent = payments.length
-        ? 'El historial muestra el monto completo de cada abono e incluye pagos de cuotas anteriores al período consultado. «Cuota por confirmar» indica que falta identificar el mes que cubrió el abono.'
+        ? 'La fecha y el monto total de cada abono vienen de la cartola. Las cuotas que cubrió pueden corresponder a meses anteriores al período consultado. «Cuota por confirmar» indica que falta identificar el mes.'
         : 'El historial disponible no contiene abonos con fecha individualizada para esta casa.';
       byId('payments').replaceChildren(...payments.map((payment, index) => {
         const paymentRow = row([
